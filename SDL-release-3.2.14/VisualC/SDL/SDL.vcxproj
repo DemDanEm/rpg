@@ -248,7 +248,6 @@
     <ClInclude Include="..\..\include\SDL3\SDL_camera.h" />
     <ClInclude Include="..\..\include\SDL3\SDL_close_code.h" />
     <ClInclude Include="..\..\include\SDL3\SDL.h" />
-    <ClInclude Include="..\..\include\SDL3\SDL_assert.h" />
     <ClInclude Include="..\..\include\SDL3\SDL_atomic.h" />
     <ClInclude Include="..\..\include\SDL3\SDL_audio.h" />
     <ClInclude Include="..\..\include\SDL3\SDL_bits.h" />

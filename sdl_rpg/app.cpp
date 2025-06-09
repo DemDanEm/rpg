@@ -1,14 +1,3 @@
-/*
-  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
-
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely.
-*/
 #define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -17,11 +6,11 @@
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
 
+#define HEIGHT 320*2
+#define WIDTH 640
 
-
-#define WHEIGHT 600
-#define WWIDTH 800
-
+#define spPath "C:\\Users\\studentcoll\\source\\repos\\rpg\\sdl_rpg\\x64\\Debug\\tastSprite.bmp"
+ 
 
 struct Sprite
 {
@@ -33,6 +22,8 @@ struct Sprite
 static Sprite sp;
 
 
+//Code from stackoverflow
+//Slightly modified
 Uint32 getpixel(SDL_Surface* surface, int x, int y)
 {
     int bpp = SDL_BYTESPERPIXEL(surface->format);
@@ -65,45 +56,90 @@ Uint32 getpixel(SDL_Surface* surface, int x, int y)
     }
 }
 
-
-void clear_bg(SDL_Texture* texture, SDL_Surface* surf)
+//Also Stackoverflow https://stackoverflow.com/questions/20070155/how-to-set-a-pixel-in-a-sdl-surface
+//Slightly modified
+void set_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel)
 {
+    Uint32* const target_pixel = (Uint32*)((Uint8*)surface->pixels
+        + y * surface->pitch
+        + x * SDL_BYTESPERPIXEL(surface->format));
+    *target_pixel = pixel;
+}
 
-    Uint32* pix = nullptr;
-    int pitch = 0;
+// Failure
+//void clear_bg(SDL_Texture* texture, SDL_Surface* surf)
+//{
+//
+//    Uint32* pix = nullptr;
+//    int pitch = 0;
+//
+//    SDL_PixelFormat format = texture->format;
+//
+//    float w, h;
+//    SDL_GetTextureSize(texture, &w, &h);
+//
+//
+//    if (!SDL_LockTexture(texture, nullptr, (void**)pix, &pitch))
+//    {
+//        SDL_Log("The Cock Was Not Locked: %s", SDL_GetError());
+//        return;
+//    }
+//
+//    for (int y = 0; y <= h; y++)
+//    {
+//        for (int x = 0; x <= w; x++)
+//        {
+//            Uint32 pos = getpixel(surf, x, y);
+//            std::cout << pos << std::endl;
+//        }
+//    }
+//
+//
+//}
 
-    SDL_PixelFormat format = texture->format;
+void clear_surface(SDL_Surface* surf)
+{
+    Uint32* pix = (Uint32*)surf->pixels;
+    Uint32 col = SDL_MapRGBA(
+        SDL_GetPixelFormatDetails(surf->format), 
+        SDL_GetSurfacePalette(surf),
+        0, 0, 0, 0);
 
-    float w, h;
-    SDL_GetTextureSize(texture, &w, &h);
+    Uint32 white = SDL_MapRGB(SDL_GetPixelFormatDetails(surf->format), NULL,
+        255, 
+        255, 
+        255);
 
-
-    if (!SDL_LockTexture(texture, nullptr, (void**)pix, &pitch))
+    for (int h = 0; h < surf->h; h++)
     {
-        SDL_Log("The Cock Was Not Locked: %s", SDL_GetError());
-        return;
-    }
-
-    for (int y = 0; y <= h; y++)
-    {
-        for (int x = 0; x <= w; x++)
+        for (int w = 0; w < surf->h; w++)
         {
-            Uint32 pos = getpixel(surf, x, y);
-            std::cout << pos << std::endl;
+            if (getpixel(surf, w, h) == white)
+            { 
+            set_pixel(surf, w, h, col);
+               }
+            
+
         }
     }
-
 
 }
 
 SDL_Texture* get_clear_texture(SDL_Renderer* renderer, SDL_Surface* surf)
 {
+    //clear_surface(surf);
+
+    SDL_SetSurfaceColorKey(surf, true,
+        SDL_MapRGB(
+            SDL_GetPixelFormatDetails(surf->format),
+            SDL_GetSurfacePalette(surf),
+            255, 255, 255
+        )
+    );
+
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surf);
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     
-
-
-    clear_bg(texture, surf);
 
 
     return texture;
@@ -130,14 +166,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     }
 
     /* Create the window */
-    if (!SDL_CreateWindowAndRenderer("Texture Test", WWIDTH, WHEIGHT, 0, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("Texture Test", WIDTH, HEIGHT, 0, &window, &renderer)) {
         SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
     //surface
     SDL_Log(SDL_GetBasePath());
-    SDL_asprintf(&bmp_path, "D:\\!ShoolSchit\\Projects\\RPGGAME\\sdl_rpg\\x64\\Debug\\testSprite1.bmp");
+    SDL_asprintf(&bmp_path, spPath);
     surface = SDL_LoadBMP(bmp_path);
 
     if (!surface) {
@@ -178,25 +214,27 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
-    SDL_FRect rect;
-
-
-
 
 
     /* Draw the message */
-    SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, std::rand(), std::rand(), std::rand(), 255);
     SDL_RenderClear(renderer);
 
+    for (int i = 0; i <=10; i++)
+    {
+        SDL_FRect rect;
+        rect.x = 16*i;
+        rect.y = 16*i;
+        rect.w = (float)sp.width;
+        rect.h = (float)sp.height;
+        SDL_SetRenderScale(renderer, std::rand() %20, std::rand()%20);
+        SDL_RenderTexture(renderer, sp.sprite, NULL, &rect);
+    }
 
-    rect.x = (100.0f );
-    rect.y = 100.0f ;
-    rect.w = (float)sp.width;
-    rect.h = (float)sp.height;
-    SDL_SetRenderScale(renderer, 3, 3);
-    SDL_RenderTexture(renderer, sp.sprite, NULL, &rect);
+    SDL_Delay(std::rand() % 200);
 
-
+    SDL_SetWindowSize(window, std::rand()%1000, std::rand()%1000);
+    SDL_SetWindowPosition(window, std::rand() % 1000, std::rand() % 1000);
 
 
     SDL_RenderPresent(renderer);

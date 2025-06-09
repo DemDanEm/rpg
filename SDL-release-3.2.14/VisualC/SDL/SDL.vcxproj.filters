@@ -228,9 +228,6 @@
     <ClInclude Include="..\..\include\SDL3\SDL_close_code.h">
       <Filter>API Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\SDL3\SDL_assert.h">
-      <Filter>API Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\SDL3\SDL_atomic.h">
       <Filter>API Headers</Filter>
     </ClInclude>
